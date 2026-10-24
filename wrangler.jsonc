@@ -1,0 +1,17 @@
+{
+  // ASAP-Rank, your own copy. Data stays in your Cloudflare account.
+  "name": "asap-rank",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "keep_vars": true,
+  "keep_names": false,
+  "d1_databases": [
+    { "binding": "DB", "database_name": "asap-rank-data" }
+  ],
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "vars": {
+    "HUB_URL": "https://app.asap-rank.workers.dev",
+    "GEMINI_MODEL": "gemini-2.5-flash"
+  },
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}

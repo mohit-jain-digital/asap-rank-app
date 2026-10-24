@@ -1,0 +1,24 @@
+{
+  "name": "asap-rank-app",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  },
+  "cloudflare": {
+    "bindings": {
+      "LICENSE_KEY": {
+        "description": "Your licence key. Copy it from ASAP-Rank, More, Account, Run ASAP-Rank on your own Cloudflare."
+      },
+      "SECRET": {
+        "description": "A long random password for your app (at least 24 characters). The setup guide makes one for you."
+      },
+      "HUB_URL": {
+        "description": "Leave as it is. This is the ASAP-Rank licence server."
+      }
+    }
+  }
+}
