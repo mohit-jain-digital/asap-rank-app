@@ -13,5 +13,5 @@
     "HUB_URL": "https://app.asap-rank.workers.dev",
     "GEMINI_MODEL": "gemini-2.5-flash"
   },
-  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+  "observability": { "enabled": true, "head_sampling_rate": 0.01 }
 }
