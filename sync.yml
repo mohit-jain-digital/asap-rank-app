@@ -1,0 +1,25 @@
+name: ASAP-Rank app sync
+# Starts when you press Sync now in your ASAP-Rank dashboard (Install tab), or by hand with Run workflow.
+# It copies the latest ASAP-Rank app code into this repository after checking it against the owner's published checksum.
+# Cloudflare then rebuilds your Worker by itself. wrangler.jsonc and your settings are never changed.
+on:
+  repository_dispatch: { types: [asap-sync] }
+  workflow_dispatch: {}
+permissions: { contents: write }
+concurrency: { group: asap-app-sync, cancel-in-progress: false }
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pull the latest verified release
+        env:
+          ASAP_MANIFEST_URL: ${{ vars.ASAP_MANIFEST_URL }}
+          ASAP_MIRROR_URL: ${{ vars.ASAP_MIRROR_URL }}
+        run: |
+          node sync.mjs app
+          git config user.name "asap-rank-sync"
+          git config user.email "sync@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || { git commit -m "Sync ASAP-Rank release $(cat VERSION)"; git push; }
