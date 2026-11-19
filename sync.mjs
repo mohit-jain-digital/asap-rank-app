@@ -14,8 +14,8 @@ const MIRROR = (process.env.ASAP_MIRROR_URL || '').replace(/\/+$/, '');
 const GIT_BASE = process.env.ASAP_GIT_BASE || 'https://github.com/';
 const OK_URL = u => /^https:\/\//.test(u) || (process.env.ASAP_ALLOW_HTTP === '1' && /^http:\/\//.test(u));
 const TAKE = KIND === 'app'
-  ? { dirs: ['src'], files: ['package.json', 'README.md', 'VERSION', 'sync.mjs'] }
-  : { dirs: ['site', 'supabase'], files: ['run.mjs', 'checks.mjs', 'publish.mjs', 'mirror.mjs', 'sync.mjs', 'package.json', 'README.md', 'VERSION'] };
+  ? { dirs: ['src'], files: ['package.json', 'README.md', 'LICENSE', 'VERSION', 'sync.mjs'] }
+  : { dirs: ['site', 'supabase'], files: ['run.mjs', 'checks.mjs', 'publish.mjs', 'mirror.mjs', 'sync.mjs', 'package.json', 'README.md', 'LICENSE', 'VERSION'] };
 const KEEP_LOCAL = ['site/config.js'];
 
 const getJson = async u => { const r = await fetch(u, { signal: AbortSignal.timeout(20000), headers: { accept: 'application/json' } }); if (!r.ok) throw new Error(u + ' answered ' + r.status); return r.json() };
