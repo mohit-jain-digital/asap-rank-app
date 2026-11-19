@@ -2,7 +2,7 @@ const PAGES = {};
 const PAL = {"/index.html": "/", "/setup": "/customer-setup"};
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type' };
 
-const SCHEMA_REV = 'r2-d25fa820c3';
+const SCHEMA_REV = 'r2-4baa51729a';
 let SVP = null, SVS = null;
 let DEMOT = null; const DEMO_RL = new Map();
 async function rlShared(key, limit, ttlSec) {
@@ -105,7 +105,7 @@ async function siteGate0(env, uid, host) {
 }
 const EM = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const EMS = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
-const APP_VERSION = '2026.11.15.1', UPD_MANIFEST = 'https://asap-rank.artistryc.in/version.json';
+const APP_VERSION = '2026.11.18.1', UPD_MANIFEST = 'https://asap-rank.artistryc.in/version.json';
 const verCmp = (a, b) => { const x = String(a).split('.').map(n => +n || 0), y = String(b).split('.').map(n => +n || 0); for (let i = 0; i < Math.max(x.length, y.length); i++) { const k = (x[i] || 0) - (y[i] || 0); if (k) return k > 0 ? 1 : -1 } return 0 };
 const IS_SELF = env => !!(env.HUB_URL && env.LICENSE_KEY);
 const selfEnv = env => IS_SELF(env) ? { ...env, SELF: 1, ADMIN_EMAIL: '' } : env;
@@ -137,6 +137,7 @@ async function purgeHosted(env, id, dry) {
       } catch (e) { sbr[t] = 'failed' }
     }
   }
+  if (!dry && sbOK(env)) await ghKick(env, 'asap-publish').catch(() => {});
   siteClear();
   return { d1, sb: sbr, settings };
 }
@@ -690,21 +691,23 @@ function loader() {
     ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(e => addEventListener(e, go, { once: true, passive: true })); setTimeout(go, 5000);
   };
   const pmx = (pat, path) => String(pat || '').split(/[\n,]/).some(l => { l = l.trim(); if (!l) return false; if (l.startsWith('re:')) { try { return new RegExp(l.slice(3)).test(path) } catch (e) { return false } } return new RegExp('^' + np(l).replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$').test(np(path)) });
-  const fixc = c => { if (c.big) return fetch(o + 'cfg.json?site=' + site + '&h=' + encodeURIComponent(L.hostname) + '&path=' + encodeURIComponent(L.pathname)).then(r => r.json()).then(c2 => { c.changes = c2.changes || []; return c }).catch(() => c); c.allCh = c.changes || []; c.changes = c.allCh.filter(z => pmx(z.page, L.pathname) && (!z.h || hn(z.h) == hn(L.hostname))); return c };
+  const fixc = c => { if (c.big) return fetch(o + 'cfg.json?site=' + site + '&h=' + encodeURIComponent(L.hostname) + '&path=' + encodeURIComponent(L.pathname)).then(r => r.json()).then(c2 => { c.changes = c2.changes || []; return c }).catch(() => c); c.allCh = c.changes || []; c.changes = c.allCh.filter(z => pmx(z.page, L.pathname) && (z.hx ? z.hx == c.HX : (!z.h || hn(z.h) == hn(L.hostname)))); return c };
   const hn = x => String(x || '').toLowerCase().replace(/^www\./, ''), png = () => { try { const t = +ls('rp_pt') || 0; if (Date.now() - t > 864e5) { ls('rp_pt', Date.now()); navigator.sendBeacon(o + 'ping?site=' + site + '&h=' + encodeURIComponent(L.hostname) + '&k=snippet') } } catch (e) {} };
   const bkt = p => { let h = 2166136261; for (let i = 0; i < p.length; i++) { h ^= p.charCodeAt(i); h = Math.imul(h, 16777619) } return (h >>> 0) % 64 };
   const statCfg = () => fetch(SB0 + '/c/' + site + '.json').then(r => r.json()).then(async c => {
     const H = hn(L.hostname), none = { popups: [], changes: [] }; png();
     if (c.off || (c.until && Date.now() > c.until)) return none;
-    if (c.hosts && !c.self && c.hosts.length && !c.hosts.includes(H)) return none;
-    c.popups = (c.popups || []).filter(z => !(z.sites || []).length || z.sites.map(hn).includes(H));
-    if (c.chat && (c.chat.sites || []).length && !c.chat.sites.map(hn).includes(H)) c.chat = null;
+    const hx = async s => { try { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(d)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('') } catch (e) { return '' } }, HX = await hx(site + '|' + H); c.HX = HX;
+    if (c.hh && !c.self && c.hh.length) { if (HX && !c.hh.includes(HX)) return none }
+    else if (c.hosts && !c.self && c.hosts.length && !c.hosts.includes(H)) return none;
+    c.popups = (c.popups || []).filter(z => !(z.sites || []).length || (c.hs ? z.sites.includes(HX) : z.sites.map(hn).includes(H)));
+    if (c.chat && (c.chat.sites || []).length && !(c.hs ? c.chat.sites.includes(HX) : c.chat.sites.map(hn).includes(H))) c.chat = null;
     if (c.sh) { const ch = []; for (const b of [bkt(np(L.pathname)), 'w']) { try { const j = await fetch(SB0 + '/c/' + site + '/' + b + '.json').then(r => r.json()); ch.push(...(j.changes || [])) } catch (e) {} } c.changes = ch }
     return c }).catch(() => ({ popups: [], changes: [] }));
   const spa = c => {
     if (edge) return;
     let last = L.pathname, want = ((c.changes || []).find(z => z.type == 'Title') || {}).value || '', fights = 0; want = String(want);
-    const pick = () => STAT ? statCfg().then(fixc).then(x => x.changes || []) : c.big ? fetch(o + 'cfg.json?site=' + site + '&h=' + encodeURIComponent(L.hostname) + '&path=' + encodeURIComponent(L.pathname)).then(r => r.json()).then(j => j.changes || []).catch(() => []) : Promise.resolve((c.allCh || []).filter(z => pmx(z.page, L.pathname) && (!z.h || hn(z.h) == hn(L.hostname))));
+    const pick = () => STAT ? statCfg().then(fixc).then(x => x.changes || []) : c.big ? fetch(o + 'cfg.json?site=' + site + '&h=' + encodeURIComponent(L.hostname) + '&path=' + encodeURIComponent(L.pathname)).then(r => r.json()).then(j => j.changes || []).catch(() => []) : Promise.resolve((c.allCh || []).filter(z => pmx(z.page, L.pathname) && (z.hx ? z.hx == c.HX : (!z.h || hn(z.h) == hn(L.hostname)))));
     const use = ch => { const t = ch.find(z => z.type == 'Title'); want = t ? String(t.value) : ''; ap({ changes: ch }) };
     const run = () => pick().then(use).catch(() => {});
     const nav = () => { if (L.pathname == last) return; last = L.pathname; fights = 0; want = ''; d.querySelectorAll('[data-rp-block],script[data-rp-ld]').forEach(n => n.remove()); setTimeout(run, 400); setTimeout(run, 1500) };
@@ -2082,12 +2085,18 @@ async function queueApi(env, user, p, M, b, u) {
   return J({ error: 'Not found' }, 404);
 }
 const staticOn = env => sbOK(env) && !!env.STATIC_BASE && !!env.APP_URL;
+const hostHash = async (site, h) => { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(site) + '|' + String(h))); return Array.from(new Uint8Array(d)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('') };
 async function staticCfg(env, r) {
   let o = { popups: [], changes: [], chat: null, ga4: '', ot: '' }; const act = isAct(r, env);
   if (act && r.pub) { try { const c = JSON.parse(r.pub); o = { popups: c.popups || [], changes: c.changes || [], ot: c.ot || '', chat: c.chat || null, ga4: c.ga4 || '' } } catch (e) {} }
   if (act) { const FF = await featuresOf(env, r); if (!FF.popup) o.popups = []; if (!FF.chat) o.chat = null; if (o.chat || o.popups.length) o = await styleOut(env, r, o, { origin: String(env.APP_URL).replace(/\/+$/, '') }, r.site) }
   const rows = env.SELF ? [] : ((await env.DB.prepare('SELECT host,status,until FROM sites WHERE uid=?').bind(r.id).all()).results || []);
-  o.hosts = env.SELF ? null : rows.filter(x => x.status == 'active' && (!x.until || x.until > Date.now())).map(x => nh(x.host)); o.self = !!env.SELF;
+  const hl = env.SELF ? null : rows.filter(x => x.status == 'active' && (!x.until || x.until > Date.now())).map(x => nh(x.host));
+  o.hh = hl ? await Promise.all(hl.map(h => hostHash(r.site, h))) : null; o.self = !!env.SELF;
+  { const hs = a => Promise.all(a.map(h => hostHash(r.site, nh(h))));
+    o.popups = await Promise.all((o.popups || []).map(async z => (z.sites || []).length ? { ...z, sites: await hs(z.sites) } : z));
+    if (o.chat && (o.chat.sites || []).length) o.chat = { ...o.chat, sites: await hs(o.chat.sites) };
+    o.changes = await Promise.all((o.changes || []).map(async z => z.h ? { ...z, h: undefined, hx: (await hs([z.h]))[0] } : z)); o.hs = 1 }
   o.until = act ? (r.plan_until || 0) : 0; o.off = act ? 0 : 1; o.v = Date.now();
   if (env.SUPABASE_ANON && env.SUPABASE_URL) o.sb = { u: String(env.SUPABASE_URL).replace(/\/+$/, ''), k: String(env.SUPABASE_ANON) };
   let sp = []; if (act && r.pub) { try { sp = (JSON.parse(r.pub).changes || []).filter(x => x.type == 'Speed') } catch (e) {} }
@@ -3315,8 +3324,29 @@ async function dashWrap(req, env, run) {
   }
   return out;
 }
+const RL_MEM = new Map();
+async function rateGate(req, env) {
+  try {
+    if (req.method == 'OPTIONS' || String(env.RATE_LIMIT) === '0') return null;
+    const p = new URL(req.url).pathname;
+    if (!(p.startsWith('/api/') || p.startsWith('/__rp/')) || p == '/api/wa/hook') return null;
+    const ip = req.headers.get('cf-connecting-ip'); if (!ip) return null;
+    const auth = /^\/api\/(login|signup|forgot|reset|wa\/|license\/check)/.test(p);
+    const cap = auth ? 20 : p.startsWith('/__rp/') ? 300 : Math.max(30, +env.RATE_LIMIT || 240);
+    const key = ip + (auth ? '|a' : p.startsWith('/__rp/') ? '|p' : '|g');
+    let hit = false;
+    if (env.RL && typeof env.RL.limit == 'function') hit = !(await env.RL.limit({ key })).success;
+    else {
+      const now = Date.now(), e = RL_MEM.get(key);
+      if (!e || now - e[0] >= 60000) { if (RL_MEM.size > 5000) RL_MEM.clear(); RL_MEM.set(key, [now, 1]) }
+      else { e[1]++; hit = e[1] > cap }
+    }
+    if (hit) return new Response(JSON.stringify({ error: 'Too many requests. Please wait a minute and try again.' }), { status: 429, headers: { 'content-type': 'application/json', 'retry-after': '60', ...CORS } });
+  } catch (e) {}
+  return null;
+}
 export default {
-  async fetch(req, env, ctx) { return await dashWrap(req, env, () => this._fetch(req, env, ctx)) },
+  async fetch(req, env, ctx) { const rl = await rateGate(req, env); if (rl) return rl; return await dashWrap(req, env, () => this._fetch(req, env, ctx)) },
   async _fetch(req, env, ctx) {
     env = selfEnv(env);
     const u = new URL(req.url), p = u.pathname, M = req.method;
